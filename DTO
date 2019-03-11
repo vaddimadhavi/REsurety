@@ -1,0 +1,55 @@
+# reSurety
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace PROJECT.AcceptanceTests.DTOs
+{
+    public class reSuretyDTOTest
+    {
+        /*FeatureLevelDetails*/
+        public int LevelDetailID { get; set; }
+        public int LevelID { get; set; }
+        public string BSP { get; set; }       
+    }
+    public class SponsorFeeLevelDTOTest
+    {
+        public string sponsornumber { get; set; }
+        public string feelevelname { get; set; }
+        public string FromDt { get; set; }
+
+    }
+    public class RevShareFeesDTOTest
+    {
+        public string NewAmount { get; set; }
+        public string FromDT { get; set; }
+    }
+
+    public class FeesEditDTOTest
+    {
+
+        public string EditFeesBasedOn { get; set; }
+        public string EditBasedOnPrime { get; set; }
+        public string EditEffectiveDate { get; set; }
+        public string EditSearchProduct { get; set; }
+        public string EditAssignUnAssignProductsButton { get; set; }
+        public string EditSelectAvailableProducts { get; set; }
+        public string EditFeeCharge { get; set; }
+        public string EditType { get; set; }
+
+    }
+
+    public class FeesEditResultDTOTest
+    {
+
+
+        public string ProductName { get; set; }
+        public string ProductPrevious { get; set; }
+        public string ProductChange { get; set; }
+        public string ProductNew { get; set; }
+
+        public string ViewFeesAs { get; set; }
+
+    }
