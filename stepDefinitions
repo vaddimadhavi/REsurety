@@ -1,0 +1,377 @@
+using EBOA.AcceptanceTests.Pages.Admin;
+using OpenQA.Selenium.Support.UI;
+using EBOA.AcceptanceTests.Helpers;
+using Protractor;
+using ServiceStack;
+using System;
+using System.Collections.Generic;
+using API.Client.Models;
+using TechTalk.SpecFlow;
+using TechTalk.SpecFlow.Assist;
+using System.Linq;
+using System.Text;
+using AcceptanceTests.DTOs;
+using System.Runtime.InteropServices;
+using Xunit;
+using Newtonsoft.Json;
+using System.Collections;
+
+namespace AcceptanceTests.StepDefinitions.Admin
+{
+    [Binding]
+
+
+    public sealed class TestSteps : StepsBase
+    {
+        private NgWebDriver ngDriver;
+        private ScenarioContext scenarioContext;
+        private FeesPage feesPage;
+        private FeesEditPage feesEditPage;
+        private WebDriverWait wait;
+        public TestSteps(NgWebDriver ngDriver, ScenarioContext scenarioContext)
+        {
+            this.ngDriver = ngDriver;
+            this.scenarioContext = scenarioContext;
+        }
+
+        [Given(@"I am on the xyg Page")]
+        public void GivenIAmOnTheFeesPage()
+        {
+            feesPage = new AdminHomePage(ngDriver).GoToFees();
+
+        }
+
+        [When(@"I am on the xyg Page")]
+        public void WhenIAmOnTheFeesPage()
+        {
+            feesPage = new AdminHomePage(ngDriver).GoToFees();
+        }
+
+
+        [When(@"I select tomorrows date")]
+        public void WhenISelectTomorrowsDate()
+        {
+            var controller = CreateMaintenanceClientChannel();
+            FeesPage feesPage = new FeesPage(ngDriver);
+            feesPage = feesPage.createCalendarDate();
+            wait = new WebDriverWait(ngDriver, TimeSpan.FromSeconds(Constants.ShortWait));
+        }
+
+        [When(@"I link the sponsor to the new pricing level and rev share changes:")]
+        public void WhenILinkTheSponsorToTheNewPricingLevelAndRevShareChanges(Table table)
+        {
+            var fees = table.CreateInstance<SponsorFeeLevelDTOTest>();
+            var controller = CreateMaintenanceClientChannel();
+            if (fees.feelevelname.Contains("auto"))
+                fees.feelevelname = scenarioContext.Get<string>("feesName");
+            feesPage = feesPage.LinkSponsor(fees);
+            var fees2 = table.CreateInstance<RevShareFeesDTOTest>();
+           // var cotroller = CreateMaintenanceClientChannel();
+            feesPage = feesPage.enterRevShareAmtAndEffectiveDate(fees2);
+            feesPage = feesPage.SaveLinkedSponsor();
+            scenarioContext.Set(fees);
+        }
+
+        [When(@"I want to link a sponsor to the pricing level")]
+        public void WhenIwanttolinkasponsortothepricinglevel(string option, Table table)
+        {
+            var fees = table.CreateInstance<SponsorFeeLevelDTOTest>();
+            var controller = CreateMaintenanceClientChannel();
+            feesPage = feesPage.LinkSponsorModal(fees);         
+            scenarioContext.Set(fees);
+        }
+
+
+        [When(@"Select sponsor Number and pricing level and revshare amt and the effective dates on the link sponsor modal")]
+        public void WhenSelectSponsorNumberAndPricingLevelAndRevshareAmtAndTheEffectiveDatesOnTheLinkSponsorModal(string option, Table table)
+        {
+            var fees = table.CreateInstance<SponsorFeeLevelDTOTest>();
+            var controller = CreateMaintenanceClientChannel();
+            feesPage = feesPage.LinkSponsor(fees);
+            feesPage = feesPage.SaveLinkedSponsor();
+            scenarioContext.Set(fees);
+        }
+
+
+        [When(@"I populate the link sponsor form with missing required fields")]
+        public void WhenIPopulateTheLinkSponsorFormWithMissingRequiredFields(Table table)
+        {
+            var fees = table.CreateInstance<SponsorFeeLevelDTOTest>();
+            var controller = CreateMaintenanceClientChannel();
+            feesPage = feesPage.LinkSponsor(fees);
+            scenarioContext.Set(fees);
+        }
+
+        [Then(@"The sponsor is linked to the desired pricing level")]
+        public void ThenTheSponsorIsLikedToTheDesiredPricingLevel()
+        {
+            var expectedSponsor = scenarioContext.Get<SponsorFeeLevelDTOTest>();
+            var expectedFeeLevel = scenarioContext.Get<FeesDTOTest>();
+            var controller = CreateMaintenanceClientChannel();
+            string responseJson2 = controller.Get<string>("Maintenance/FeeLevels/");       
+            var sponsorDetail = responseJson2.FromJson<IEnumerable<ISponsorFeeLevel>>();
+            var feeLevelList = JsonConvert.DeserializeObject<IEnumerable<FeeLevel>>(responseJson2);
+            var lastFeeLevel = feeLevelList.Last<FeeLevel>();
+            var actuaFeeLevelDetail = lastFeeLevel.FeeLevelDetails.FirstOrDefault();
+            var actualSponsorDetail = sponsorDetail.FirstOrDefault();          
+          //  Assert.Equal(expectedSponsor.FromDt, actualSponsorDetail.FromDt.SerializeToString());
+         //   Assert.Equal(expectedFeeLevel.SponsorNumber, lastFeeLevel.NumOfSponsors);
+            Assert.Equal(expectedFeeLevel.Name, lastFeeLevel.Name);
+            Assert.Equal(expectedFeeLevel.FeeBSP, actuaFeeLevelDetail.FeeBSP.ToString());
+        }
+
+        /* To uncomment after Rev share has been generated.
+        [Then(@"The Revenue Share details are saved to the database")]
+        public void ThenTheRevenueShareDetailsAreSavedToTheDatabase()
+        {
+            var expectedSponsor = scenarioContext.Get<SponsorFeeLevelDTOTest>();
+            var controller = CreateMaintenanceClientChannel();
+            string responseJson3 = controller.Get<string>("Maintenance/RevenueShares/SaveRevenueShare");
+            var revshareDetail = responseJson3.FromJson<IEnumerable<ISponsorFeeLevel>>();
+            //change the above to Rev Share
+        } */
+
+
+        [Then(@"I cannot link sponsor")]
+        public void ThenICannotLinkSponsor()
+        {
+            Assert.False(feesPage.canSaveLinkedSponsor);
+        }
+
+
+        [Then(@"I can cancel out of the page")] 
+        public void ThenICanCancelOutOfThePage()
+        {
+            feesPage = feesPage.CancelLinkSponsor();
+        }
+
+
+        [When(@"I create a new pricing level")]
+        public void WhenICreateANewPricingLevel(Table table)
+        {
+            var fees = table.CreateInstance<FeesDTOTest>();
+            var controller = CreateMaintenanceClientChannel();
+            feesPage = feesPage.CreateFees(fees);
+            scenarioContext.Set(fees);
+            Assert.True(feesPage.canAddPricingLevel);
+        }
+
+        [Then(@"Based on Prime Defaults to Yes")]
+        public void ThenBasedOnPrimeDefaultsToYes()
+        {
+            FeesPage feesPage = new FeesPage(ngDriver);
+            Assert.True(feesPage.basedOnPrime.Enabled);
+        }
+
+        [Then(@"Add rate as defaults to Basis Points")]
+        public void ThenAddRateAsDefaultsToBasisPoints()
+        {
+            FeesPage feesPage = new FeesPage(ngDriver);
+            Assert.True(feesPage.basisPoints.Enabled);
+        }
+
+        [When(@"I (wish to |)create the following pricing level:")]
+        public void WhenICreateTheFollowingPricingLevel(string option, Table table)
+        {
+            feesPage = new FeesPage(ngDriver);
+            var fees = table.CreateInstance<FeesDTOTest>();
+            var name = CreateFeesName(fees.Name);
+            fees.Name = name;
+            scenarioContext.Set<string>(name, "feesName");
+            feesPage = feesPage.NewFees(fees);
+            feesPage = feesPage.setPrimeAndDetailTypestatus(fees);
+            wait = new WebDriverWait(ngDriver, TimeSpan.FromSeconds(Constants.ShortWait));
+            feesPage = feesPage.Save();
+            scenarioContext.Set<FeesDTOTest>(fees);
+            
+        }
+
+        internal string CreateFeesName(string name)
+        {
+            if (!string.IsNullOrEmpty(name))
+            {
+                if (name.Contains("auto"))
+                {
+                    DateTime _now = DateTime.Now;
+                    string _dd = _now.ToString("dd");
+                    string _mm = _now.ToString("MM");
+                    string _yy = _now.ToString("yyyy");
+                    string _hh = _now.Hour.ToString();
+                    string _min = _now.Minute.ToString();
+                    string _ss = _now.Second.ToString();
+
+                    name = name + _dd + _hh + _mm + _min + _ss + _yy;
+
+                    
+
+                }
+                
+
+            }
+            return name;
+        }
+
+        [Then(@"The new fee Level is saved to the database:")]
+        public void ThenTheNewFeeLevelIsSavedToTheDatabase()
+        {
+
+           
+            var expected = scenarioContext.Get<FeesDTOTest>();
+            var controller = CreateMaintenanceClientChannel();
+            string responseJson = controller.Get<string>("Maintenance/FeeLevels/");
+            var feeLevelList = JsonConvert.DeserializeObject<IEnumerable<FeeLevel>>(responseJson);
+            var lastFeeLevel = feeLevelList.Last<FeeLevel>();
+            var actualDetail = lastFeeLevel.FeeLevelDetails.Last();
+            var expectedName = scenarioContext.Get<string>("feesName");
+            Assert.Equal(expectedName, lastFeeLevel.Name);
+            Assert.Equal(expected.BasedOnPrime, lastFeeLevel.BasedOnPrime);
+            Assert.Equal(expected.NumOfSponsors, lastFeeLevel.NumOfSponsors);   
+            Assert.Equal(expected.ExpectedFeeBSP, actualDetail.FeeBSP.ToString());
+        }
+
+
+        [When(@"I (wish to |)create a new pricing group by populating all the pricing groups individually")]
+        public void WhenICreateANewPricingGroupByPopulatingAllThePricingGroupsIndividually(string option, Table table)
+        {
+            FeesPage feesPage = new FeesPage(ngDriver);
+            var fees = table.CreateInstance<FeesDTOTest>();
+            var controller = CreateMaintenanceClientChannel();
+            var pricingGroups = fees.PricingGroups;
+
+            feesPage = feesPage.populateNameAndOrder(fees);
+            feesPage = feesPage.populatepricinglevel(fees);
+
+            
+
+            if (option.Equals(""))
+                feesPage.Save();
+            // else do nothing
+
+            var name = CreateFeesName(fees.Name);
+            fees.FeeLevelName = name;
+           
+            scenarioContext.Set(fees);
+            scenarioContext.Set<string>(fees.FeeLevelName, "feesName");
+        }
+
+        [When(@"I (wish to |)edit product pricing group and (.*)")]
+        public void WhenIEditProductPricingGroup(string option, string continueOrCancel, Table table)
+        {
+            var editFeesTest = table.CreateInstance<FeesEditDTOTest>();
+            feesPage = new FeesPage(ngDriver);
+            if (!string.IsNullOrEmpty(editFeesTest.EditType))
+            {
+                if (editFeesTest.EditType.ToLower().Equals("prime"))
+                {
+                    feesPage.clickEditFees();
+                }
+                else //auto generated name
+                {
+                    feesPage.clickNewEditFees();
+                }
+            }
+            feesEditPage = new FeesEditPage(ngDriver);
+            
+            feesEditPage.editFees(editFeesTest);
+            if (option.IsNullOrEmpty())
+            {
+                if (continueOrCancel.ToLower().Equals("continueandsave"))
+                {
+                    feesEditPage.editContinueFees();
+                    feesEditPage.saveEditFeesChanges();
+                }
+                if (continueOrCancel.ToLower().Equals("continue"))
+                {
+                    feesEditPage.editContinueFees();
+
+                }
+                if (continueOrCancel.ToLower().Equals("cancel"))
+                {
+                    feesEditPage.editCancelFees();
+                }
+            }
+
+        }
+
+        [When(@"I (.*) confirm fee changes")]
+        public void ThenISaveProductPricigGroup(String option)
+        {
+            feesEditPage = new FeesEditPage(ngDriver);
+            if (option.ToLower().Equals("save"))
+                feesEditPage.saveEditFeesChanges();
+            if (option.ToLower().Equals("goback"))
+                feesEditPage.goBackEditFeesChanges();
+
+        }
+
+
+
+        [Then(@"The fees product pricing group results page is displayed with the following details:")]
+        public void ThenTheFeesProductPricingGroupResultsPageDisplayedWithTheFollowingDetails(Table table)
+        {
+
+            var expectedResults = table.CreateInstance<FeesEditResultDTOTest>();
+            var actualResults = new FeesEditPage(ngDriver);
+
+            if (!string.IsNullOrEmpty(expectedResults.ViewFeesAs))
+            {
+                if (expectedResults.ViewFeesAs.ToLower().Equals("percentage"))
+                {
+                    actualResults.clickViewFeesAsPercentage();
+                    actualResults = new FeesEditPage(ngDriver);
+
+                }
+                else
+                {
+                    actualResults.clickViewFeesAsBasisPoints();
+                    actualResults = new FeesEditPage(ngDriver);
+                }
+            }
+
+            if (!string.IsNullOrEmpty(expectedResults.ProductName))
+            {
+                Assert.Equal(expectedResults.ProductName, actualResults.getConfirmName());
+
+            }
+
+            if (!string.IsNullOrEmpty(expectedResults.ProductChange))
+            {
+
+                Assert.Equal(expectedResults.ProductChange, actualResults.getConfirmChange());
+            } 
+            if (!string.IsNullOrEmpty(expectedResults.ProductNew))
+            {
+                Assert.Equal(expectedResults.ProductNew, actualResults.getConfirmNew());
+            }
+            if (!string.IsNullOrEmpty(expectedResults.ProductPrevious))
+            {
+                Assert.Equal(expectedResults.ProductPrevious, actualResults.getConfirmPrevious());
+            }     
+        }
+
+
+        [Then(@"the save button is enabled")]
+        public void ThenTheSaveButtonIsEnabled()
+        {
+            Assert.True(feesPage.CanSaveFees);
+        }
+
+        [Then(@"the save button is not enabled")]
+        public void ThenTheSaveButtonIsNotEnabled()
+        {
+            Assert.False(feesPage.CanSaveFees);
+        }
+
+        [Then(@"I can cancel creation of a pricing level")]
+        public void ThenICanCancelCreationOfAPricingLevel()
+        {
+            var cancelFeeCreate = feesPage.Cancel();
+            Assert.True(feesPage.CanCancel);
+        }
+
+
+    }
+}
+
+
+
