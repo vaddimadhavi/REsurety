@@ -1,0 +1,41 @@
+using OpenQA.Selenium;
+using OpenQA.Selenium.Support.PageObjects;
+using OpenQA.Selenium.Support.UI;
+using Protractor;
+using System;
+using ProjectName
+using System.Collections.Generic;
+using System.Linq;
+using EBOA.AcceptanceTests.Helpers;
+using supportingProject
+using EBOA.AcceptanceTests.DTOs;
+
+namespace Project.AcceptanceTests.Pages.Admin
+{
+    internal class TestsPage : BasePage
+
+    {
+        private NgWebDriver ngDriver;
+        private WebDriverWait wait;
+        private By lctWaitSpinner = By.Id("ngplus-overlay-container");
+        private By editButton = By.CssSelector("div.pricing-overview > table > tbody:nth-child(2) > tr.edit-pricing-row > td.edit-field.ng-scope > i");
+
+        //the feature tab
+        [FindsBy(How = How.Custom, CustomFinderType = typeof(NgByBinding), Using = "Fees")]
+
+        // Click on the Create new elementName
+        [FindsBy(How = How.CssSelector, Using = "button[ng-click*=\"vm.createPricingLevel\"]")]
+
+        private IWebElement btnNew { get; set; }
+        
+        //Calendar icon
+        [FindsBy(How = How.CssSelector, Using = "button[ng-click*=\"vm.open($event)")]
+        private IWebElement calendar{ get; set; }
+
+        //Display as of Date field
+        [FindsBy(How = How.Custom, CustomFinderType = typeof(NgByModel), Using = "vm.date")]
+        private IWebElement enterDate { get; set; }
+
+        // Click on Link Sponsor
+        [FindsBy(How = How.CssSelector, Using = "button.col-xs-3.pull-right.assoc-sponsor-btn")]
+        private IWebElement linkSponsor { get; set; }
