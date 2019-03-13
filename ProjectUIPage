@@ -1,0 +1,729 @@
+# reSurety
+using OpenQA.Selenium;
+using OpenQA.Selenium.Support.PageObjects;
+using OpenQA.Selenium.Support.UI;
+using Protractor;
+using System;
+using AcceptanceTests.StepDefinitions.Admin;
+using System.Collections.Generic;
+using System.Linq;
+using AcceptanceTests.Helpers;
+using static AcceptanceTests.StepDefinitions.Admin.FeesTestSteps;
+using AcceptanceTests.DTOs;
+
+namespace AcceptanceTests.Pages.Admin
+{
+    internal class FeesPage : BasePage
+
+    {
+        private NgWebDriver ngDriver;
+        private WebDriverWait wait;
+        private By lctWaitSpinner = By.Id("ngplus-overlay-container");
+        private By editButton = By.CssSelector("div.pricing-overview > table > tbody:nth-child(2) > tr.edit-pricing-row > td.edit-field.ng-scope > i");
+
+        //the 1st tab
+        [FindsBy(How = How.Custom, CustomFinderType = typeof(NgByBinding), Using = "Text")]
+
+        // Click on the Create new Pricing
+        [FindsBy(How = How.CssSelector, Using = "button[ng-click*=\"vm.createxyz\"]")]
+
+        private IWebElement btnNew { get; set; }
+        
+        //Calendar icon
+        [FindsBy(How = How.CssSelector, Using = "button[ng-click*=\"vm.open($event)")]
+        private IWebElement calendar{ get; set; }
+
+        //Display as of Date field
+        [FindsBy(How = How.Custom, CustomFinderType = typeof(NgByModel), Using = "vm.date")]
+        private IWebElement enterDate { get; set; }
+
+        // Click on Link y
+        [FindsBy(How = How.CssSelector, Using = "button.col-xs-3.pull-right.assoc-sponsor-btn")]
+        private IWebElement linkSponsor { get; set; }
+
+        //Populate link y form fields
+        //enter sponsor number
+        [FindsBy(How = How.Custom, CustomFinderType = typeof(NgByModel), Using = "vm.sponsor")]
+        private IWebElement yNumber { get; set; }
+
+
+        //Select xyz level 
+        [FindsBy(How = How.Custom, CustomFinderType = typeof(NgByModel), Using = "vm.editable.pendingxyzId")]
+        private IWebElement pendingxyz { get; set; }
+        private SelectElement selectxyz { get { return new SelectElement(pendingxyz); } }
+
+        //Pending xyzeffective Date
+        [FindsBy(How = How.Custom, CustomFinderType = typeof(NgByModel), Using = "vm.editable.pendingPricingLevelDate")]
+        private IWebElement pendingPricingEffectiveDate { get; set; }
+
+
+
+        //Pending R S Amount
+        [FindsBy(How = How.CssSelector, Using = "ng-form > div:nth-child(1) > div > div > fee-edit > input")]
+        private IWebElement pendingRSAmt { get; set; }
+
+
+        // Prending RS Effective Date
+        [FindsBy(How = How.Custom, CustomFinderType = typeof(NgByModel), Using = "vm.editable.rsEffectiveDate")]
+        private IWebElement pendingrsEffectiveDate { get; set; }
+
+
+        //pricing name
+        [FindsBy(How = How.Custom, CustomFinderType = typeof(NgByModel), Using = "vm.editable.pricingName")]
+        private IWebElement pricingName { get; set; }
+
+        //Insert After   
+        [FindsBy(How = How.Custom, CustomFinderType = typeof(NgByModel), Using = "vm.editable.pricingColumn")]
+        private IWebElement Order { get; set; }
+        private SelectElement selPricing { get { return new SelectElement(Order); } }
+
+        //Fee for all product pricing groups
+        [FindsBy(How = How.CssSelector, Using = "div:nth-child(2) > div:nth-child(2) > div > fee-edit > input")]
+        private IWebElement FeeOverrideAmt { get; set; }
+
+        //save
+        [FindsBy(How = How.CssSelector, Using = "button[ng-click*=\"vm.saveNewPricingLevel\"]")]
+        private IWebElement btnSave { get; set; }
+
+
+        private By saveButton = By.CssSelector("button[ng - click *=\"vm.saveNewPricingLevel\"]");
+
+
+        //save on link sponsor page
+        [FindsBy(How = How.CssSelector, Using = "button[ng-click*=\"vm.save\"]")]
+        private IWebElement btnSaveLinkedSponsor { get; set; }
+        
+        // Select sponsor number
+        [FindsBy(How = How.CssSelector, Using = " a > span")]
+        private IWebElement selectSponsNum { get; set; }
+
+        //cancel ( usually not needed but just in case...)
+        [FindsBy(How = How.CssSelector, Using = "button[ng-mousedown*=\"vm.closeNewPricingLevel()\"]")]
+        private IWebElement btnCancel { get; set; }
+
+        //Close Link pl page
+        [FindsBy(How = How.CssSelector, Using = "button[ng-mousedown*=\"vm.close()\"]")]
+        private IWebElement btnCancells { get; set; }
+
+        //based on Prime
+        [FindsBy(How = How.CssSelector, Using = "label[uib-btn-radio*=\"true\"")]
+        public IWebElement basedOnPrime { get; set; }
+
+        private By basedOnPrimeList = By.CssSelector("label[uib-btn-radio*=\"true\"");
+
+        //not based on Prime
+        [FindsBy(How = How.CssSelector, Using = "label[uib-btn-radio*=\"false\"")]
+        private IWebElement notBasedOnPrime { get; set; }
+
+        private By notBasedOnPrimeList = By.CssSelector("label[uib-btn-radio*=\"false\"");
+
+        //Basis Points
+        [FindsBy(How = How.CssSelector, Using = "label[uib-btn-radio*=\"BasisPoints\"")]
+        public IWebElement basisPoints { get; set; }
+
+        private By basisPointsList = By.CssSelector("label[uib-btn-radio*=\"BasisPoints\"");
+
+        //Percentage
+        [FindsBy(How = How.CssSelector, Using = "label[uib-btn-radio*=\"Percentage\"")]
+        public IWebElement percentage { get; set; }
+
+        private By percentageList = By.CssSelector("label[uib-btn-radio*=\"Percentage\"");
+
+        //insert values for date filters at a later point in time
+
+
+        // New Pricing Level viewable
+        [FindsBy(How = How.Custom, CustomFinderType = typeof(NgByRepeater), Using = "group in vm.pricingLevelsGroups")]
+        private IList<IWebElement> lstFees { get; set; }
+
+        //Below are the individual pricing fields
+        [FindsBy(How = How.CssSelector, Using = "tr.fee-input-row > td:nth-child(1) > fee-edit > input")]
+        private IWebElement til { get; set; }
+
+
+        [FindsBy(How = How.CssSelector, Using = "tr.fee-input-row > td:nth-child(2) > fee-edit > input")]
+        private IWebElement a1 { get; set; }
+
+        [FindsBy(How = How.CssSelector, Using = "tr.fee-input-row > td:nth-child(3) > fee-edit > input")]
+        private IWebElement a2 { get; set; }
+
+        [FindsBy(How = How.CssSelector, Using = "tr.fee-input-row > td:nth-child(4) > fee-edit > input")]
+        private IWebElement a3 { get; set; }
+
+        [FindsBy(How = How.CssSelector, Using = "tr.fee-input-row > td:nth-child(5) > fee-edit > input")]
+        private IWebElement a4 { get; set; }
+
+        [FindsBy(How = How.CssSelector, Using = "tr.fee-input-row > td:nth-child(6) > fee-edit > input")]
+        private IWebElement a5{ get; set; }
+
+        [FindsBy(How = How.CssSelector, Using = "tr.fee-input-row > td:nth-child(7) > fee-edit > input")]
+        private IWebElement a6 { get; set; }
+
+        [FindsBy(How = How.CssSelector, Using = "tr.fee-input-row > td:nth-child(8) > fee-edit > input")]
+        private IWebElement a7 { get; set; }
+
+        [FindsBy(How = How.CssSelector, Using = "tr.fee-input-row > td:nth-child(9) > fee-edit > input")]
+        private IWebElement a8 { get; set; }
+
+        [FindsBy(How = How.CssSelector, Using = "tr.fee-input-row > td:nth-child(10) > fee-edit > input")]
+        private IWebElement a9  { get; set; }
+
+        [FindsBy(How = How.CssSelector, Using = "tr.fee-input-row > td:nth-child(11) > fee-edit > input")]
+        private IWebElement y4 { get; set; }
+
+        [FindsBy(How = How.CssSelector, Using = "tr.fee-input-row > td:nth-child(12) > fee-edit > input")]
+        private IWebElement y9 { get; set; }
+
+        [FindsBy(How = How.CssSelector, Using = "tr.fee-input-row > td:nth-child(13) > fee-edit > input")]
+        private IWebElement a1 { get; set; }
+
+        [FindsBy(How = How.CssSelector, Using = "tr.fee-input-row > td:nth-child(14) > fee-edit > input")]
+        private IWebElement m2 { get; set; }
+
+        [FindsBy(How = How.CssSelector, Using = "tr.fee-input-row > td:nth-child(15) > fee-edit > input")]
+        private IWebElement m4 { get; set; }
+
+        [FindsBy(How = How.CssSelector, Using = "tr.fee-input-row > td:nth-child(16) > fee-edit > input")]
+        private IWebElement mo36 { get; set; }
+
+        [FindsBy(How = How.CssSelector, Using = "tr.fee-input-row > td:nth-child(17) > fee-edit > input")]
+        private IWebElement mo48 { get; set; }
+
+        [FindsBy(How = How.CssSelector, Using = "tr.fee-input-row > td:nth-child(18) > fee-edit > input")]
+        private IWebElement mo60 { get; set; }
+
+        [FindsBy(How = How.CssSelector, Using = "tr.fee-input-row > td:nth-child(19) > fee-edit > input")]
+        private IWebElement mo72 { get; set; }
+
+        [FindsBy(How = How.CssSelector, Using = "tr.fee-input-row > td:nth-child(20) > fee-edit > input")]
+        private IWebElement mo84 { get; set; }
+
+        [FindsBy(How = How.CssSelector, Using = "tr.fee-input-row > td:nth-child(21) > fee-edit > input")]
+        private IWebElement micro24mo { get; set; }
+
+        [FindsBy(How = How.CssSelector, Using = "tr.fee-input-row > td:nth-child(22) > fee-edit > input")]
+        private IWebElement combo1_99percent_7yr { get; set; }
+
+        [FindsBy(How = How.CssSelector, Using = "tr.fee-input-row > td:nth-child(23) > fee-edit > input")]
+        private IWebElement combo1_99percent_10yr { get; set; }
+
+        [FindsBy(How = How.CssSelector, Using = "tr.fee-input-row > td:nth-child(24) > fee-edit > input")]
+        private IWebElement combo1_99percent_12yr { get; set; }
+
+        [FindsBy(How = How.CssSelector, Using = "tr.fee-input-row > td:nth-child(25) > fee-edit > input")]
+        private IWebElement yr5_2_99percent { get; set; }
+
+        [FindsBy(How = How.CssSelector, Using = "tr.fee-input-row > td:nth-child(26) > fee-edit > input")]
+        private IWebElement combo2_99_7yr { get; set; }
+
+        [FindsBy(How = How.CssSelector, Using = "tr.fee-input-row > td:nth-child(27) > fee-edit > input")]
+        private IWebElement combo2_99_10yr { get; set; }
+
+        [FindsBy(How = How.CssSelector, Using = "tr.fee-input-row > td:nth-child(28) > fee-edit > input")]
+        private IWebElement combo2_99_12yr { get; set; }
+
+        [FindsBy(How = How.CssSelector, Using = "tr.fee-input-row > td:nth-child(29) > fee-edit > input")]
+        private IWebElement combo3_99_10yr { get; set; }
+
+       
+
+        [FindsBy(How = How.CssSelector, Using = "tr.fee-input-row > td:nth-child(30) > fee-edit >input")]
+        private IWebElement combo3_99_12yr { get; set; }
+
+        [FindsBy(How = How.CssSelector, Using = "tr.fee-input-row > td:nth-child(31) > fee-edit > input")]
+        private IWebElement yr5_4_99percent{ get; set; }
+        
+        [FindsBy(How = How.CssSelector, Using = "tr.fee-input-row > td:nth-child(32) > fee-edit >input")]
+        private IWebElement combo4_99_7yr { get; set; }
+
+        [FindsBy(How = How.CssSelector, Using = "tr.fee-input-row > td:nth-child(33) > fee-edit > input")]
+        private IWebElement combo4_99_10yr { get; set; }
+
+        [FindsBy(How = How.CssSelector, Using = "tr.fee-input-row > td:nth-child(34) > fee-edit > input")]
+        private IWebElement combo4_99_12yr { get; set; }
+
+        [FindsBy(How = How.CssSelector, Using = "tr.fee-input-row > td:nth-child(35) > fee-edit > input")]
+        private IWebElement combo4_99_20yr { get; set; }
+        
+
+        [FindsBy(How = How.CssSelector, Using = "tr.fee-input-row > td:nth-child(36) > fee-edit > input")]
+        private IWebElement yr5_6_99percent { get; set; }
+
+        [FindsBy(How = How.CssSelector, Using = "tr.fee-input-row > td:nth-child(37) > fee-edit > input")]
+        private IWebElement combo6_99_7yr { get; set; }
+
+
+        [FindsBy(How = How.CssSelector, Using = "tr.fee-input-row > td:nth-child(38) > fee-edit > input")]
+        private IWebElement combo6_99_10yr { get; set; }
+
+
+        [FindsBy(How = How.CssSelector, Using = "tr.fee-input-row > td:nth-child(39) > fee-edit > input")]
+        private IWebElement combo6_99_12yr { get; set; }
+
+
+        [FindsBy(How = How.CssSelector, Using = "tr.fee-input-row > td:nth-child(40) > fee-edit > input")]
+        private IWebElement combo6_99_20yr { get; set; }
+
+        [FindsBy(How = How.CssSelector, Using = "tr.fee-input-row > td:nth-child(41) > fee-edit > input")]
+        private IWebElement yr5_7_99percent { get; set; }
+
+        [FindsBy(How = How.CssSelector, Using = "tr.fee-input-row > td:nth-child(42) > fee-edit > input")]
+        private IWebElement combo7_99_7yr { get; set; }
+
+        [FindsBy(How = How.CssSelector, Using = "tr.fee-input-row > td:nth-child(43) > fee-edit > input")]
+        private IWebElement combo7_99_10yr { get; set; }
+
+        [FindsBy(How = How.CssSelector, Using = "tr.fee-input-row > td:nth-child(44) > fee-edit > input")]
+        private IWebElement combo7_99_12yr { get; set; }
+
+        [FindsBy(How = How.CssSelector, Using = "tr.fee-input-row > td:nth-child(45) > fee-edit > input")]
+        private IWebElement yr5_8_99percent { get; set; }
+
+        [FindsBy(How = How.CssSelector, Using = "tr.fee-input-row > td:nth-child(46) > fee-edit > input")]
+        private IWebElement combo8_99_7yr { get; set; }
+
+        [FindsBy(How = How.CssSelector, Using = "tr.fee-input-row > td:nth-child(47) > fee-edit >input")]
+        private IWebElement combo8_99_10yr { get; set; }
+
+        [FindsBy(How = How.CssSelector, Using = "tr.fee-input-row > td:nth-child(48) > fee-edit > input")]
+        private IWebElement combo8_99_12yr { get; set; }
+
+        [FindsBy(How = How.CssSelector, Using = "tr.fee-input-row > td:nth-child(49) > fee-edit > input")]
+        private IWebElement yr1to5_6_99percent { get; set; }
+
+
+        [FindsBy(How = How.CssSelector, Using = "tr.edit-pricing-row > td.edit-field.ng-scope > i")]
+        private IWebElement editFeesButton { get; set; }
+
+        [FindsBy(How = How.CssSelector, Using = "tr.edit-pricing-row > td:nth-child(3) > i")]
+        private IWebElement editNewFeesButton { get; set; }
+
+
+        // edit page objects
+
+        public fPage(NgWebDriver ngDriver) : base(ngDriver)
+        {
+            this.ngDriver = ngDriver;
+            PageFactory.InitElements(ngDriver, this);
+            wait = new WebDriverWait(ngDriver, TimeSpan.FromSeconds(Constants.ShortWait));
+            wait.Until(ExpectedConditions.InvisibilityOfElementLocated(lctWaitSpinner));
+            CloseToast();
+        }
+        
+
+        internal Page Save()
+        {
+            btnSave.Click();
+            wait.Until(ExpectedConditions.InvisibilityOfElementLocated(saveButton));
+            wait = new WebDriverWait(ngDriver, TimeSpan.FromSeconds(5));
+            return new fPage(ngDriver);
+        }
+
+        internal fPage CancelLinkSponsor()
+        {
+            btnCancelLinkSponsor.Click();
+            return new fPage(ngDriver);
+        }
+
+        internal fPage createPricingLevel()
+        {
+            btnNew.Click();
+            return new fPage(ngDriver);
+        }
+
+        internal fPage Cancel()
+        {
+            btnCancel.SendKeys(Keys.Return);
+            return new fPage(ngDriver);
+        }
+
+        internal FPage CreateFees(DTOTest Fees)
+        {
+            btnNew.Click();
+            return this;
+        }
+
+       
+
+        internal fPage NewFees(fDTOTest Fees)
+        {
+            btnNew.Click();
+            if (!string.IsNullOrEmpty(Fees.Name))
+            {   
+                    pricingName.SendKeys(Fees.Name);
+               
+            }
+            selPricing.SelectBySubText(Fees.Order);
+            wait.Until(ExpectedConditions.InvisibilityOfElementLocated(lctWaitSpinner));
+            FeeOverrideAmt.Click();
+            FeeOverrideAmt.SendKeys(Fees.FeeBSP);
+            
+            return this;
+        }
+
+        internal FeesPage populateNameAndOrder(DTOTest fees)
+        {
+            btnNew.Click();
+            if (!string.IsNullOrEmpty(fees.Name))
+            pricingName.SendKeys(fees.Name);
+            if (!string.IsNullOrEmpty(fees.Order))
+            selPricing.SelectBySubText(fees.Order);
+            return this;
+        }
+
+        internal FeesPage clickEditF()
+        {
+
+            wait.Until(ExpectedConditions.ElementIsVisible(editButton));
+     
+            editFeesButton.Click();
+            return new FeesPage(ngDriver);
+        }
+
+        internal FeesPage clickNewEditFees()
+        {
+
+            wait.Until(ExpectedConditions.ElementIsVisible(editButton));
+            editNewFeesButton.Click();
+            return new FeesPage(ngDriver);
+        }
+
+
+
+        private void SetStatus(string status)
+        {
+            if ("true".Equals(status.ToLower()))
+                basedOnPrime.Click();
+            else if ("false".Equals(status.ToLower()))
+                notBasedOnPrime.Click();
+        }
+
+        private void SetType(string feeType)
+        {
+            if ("percentage".Equals(feeType.ToString()))
+                percentage.Click();
+            else if ("basispoints".Equals(feeType.ToString()))
+                basisPoints.Click();
+            else
+                throw new NoSuchElementException();
+        }
+
+        private void SetPrime(bool prime)
+        {
+            var basedOnPrimeList = ngDriver.FindElements(this.basedOnPrimeList);
+            var notBasedOnPrimeList = ngDriver.FindElements(this.notBasedOnPrimeList);
+
+            if ("true".Equals(prime))
+                basedOnPrimeList[1].Click();
+            else if ("false".Equals(prime))
+                notBasedOnPrimeList[1].Click();
+        }
+
+        private void SetRateAs(string addRateAs)
+        {
+            var percentageList = ngDriver.FindElements(this.percentageList);
+            var basisPointsList = ngDriver.FindElements(this.basisPointsList);
+
+            if ("percentage".Equals(addRateAs.ToLower()))
+                percentageList[1].Click();
+            else if ("basispoints".Equals(addRateAs.ToLower()))
+                basisPointsList[1].Click();
+            else
+                throw new NoSuchElementException();
+        }
+        internal FeesPage setPrimeAndDetailTypestatus(FeesDTOTest fees)
+        {
+            SetStatus(fees.BasedOnPrime.ToString());
+
+            if (fees.BasedOnPrime)
+            {
+                SetPrime(fees.BasedOnPrime);
+            }
+
+            SetType(fees.FeeDetailType.ToLower());
+            return this;
+        }
+        
+        internal FeesPage createCalendarDate()
+        {
+            enterDate.Clear();
+            enterDate.SendKeys(DateTime.Now.AddDays(1).ToString("MM-dd-yyyy"));
+            wait.Until(ExpectedConditions.InvisibilityOfElementLocated(lctWaitSpinner));
+            return this;
+        }
+
+        internal FeesPage LinkSponsor(SponsorFeeLevelDTOTest fees)
+        {
+            linkSponsor.Click();
+            wait.Until(ExpectedConditions.InvisibilityOfElementLocated(lctWaitSpinner));
+            if (!String.IsNullOrEmpty(fees.sponsornumber))
+            {
+                sponsorNumber.SendKeys(fees.sponsornumber);
+                wait.Until(ExpectedConditions.InvisibilityOfElementLocated(lctWaitSpinner));
+                selectSponsNum.Click();
+
+                if (!string.IsNullOrEmpty(fees.feelevelname))
+                {
+    
+                    selectPendingPricingLevel.SelectBySubText(fees.feelevelname);
+                }
+                if (!string.IsNullOrEmpty(fees.FromDt))
+                {
+                    
+                    pendingPricingEffectiveDate.Clear();
+                    if (fees.FromDt.Contains("+"))
+                    {
+                        var days = fees.FromDt.Split('+');
+                        pendingPricingEffectiveDate.SendKeys(DateTime.Now.AddDays(double.Parse(days[1])).ToString("MM/dd/yyyy"));
+                    }
+                    else
+                    {
+                        pendingPricingEffectiveDate.SendKeys(fees.FromDt);
+
+                    }
+                }
+            }
+            else
+            {
+                //do nothing
+            }
+            return this;
+        }
+
+        internal FeesPage LinkSponsorModal(SponsorFeeLevelDTOTest fees)
+        {
+            linkSponsor.Click();
+            wait.Until(ExpectedConditions.InvisibilityOfElementLocated(lctWaitSpinner));
+            return this;
+        }
+
+            internal FeesPage enterRevShareAmtAndEffectiveDate(RevShareFeesDTOTest fees)
+        {
+            if (!String.IsNullOrEmpty(fees.NewAmount))
+            {
+               
+                pendingRevShareAmt.SendKeys(fees.NewAmount);
+            }
+
+            if (!string.IsNullOrEmpty(fees.FromDT))
+            {
+                if (fees.FromDT.Contains("+"))
+                {
+                    var days = fees.FromDT.Split('+');
+                    pendingRevShareEffectiveDate.SendKeys(DateTime.Now.AddDays(int.Parse(days[1])).ToString("MM/dd/yyyy"));
+                }
+                else
+                {
+                    pendingRevShareEffectiveDate.SendKeys(fees.FromDT);
+                }
+            }
+            
+            return this;
+        }
+
+        internal FeesPage SaveLinkedSponsor()
+        {
+            btnSaveLinkedSponsor.Click();
+            wait.Until(ExpectedConditions.InvisibilityOfElementLocated(lctWaitSpinner));
+            return this;
+        }
+        
+        internal FeesPage Percentage(FeesDTOTest fees)
+        {
+            percentage.TryAndClick();
+            return this;
+        }
+
+        internal FeesPage BasisPoints(FeesDTOTest fees)
+        {
+            basisPoints.TryAndClick();
+            return this;
+        }
+
+        internal void populateGroupListFields(Dictionary<string, string> pricingGroupList)
+        {
+            if (pricingGroupList.ContainsKey("til"))
+            {
+                til.Click();
+                til.SendKeys(pricingGroupList["til"]);
+            }
+            sac90.Click();
+            sac90.SendKeys(pricingGroupList["sac90"]);
+          
+            sac180.Click();
+            sac180.SendKeys(pricingGroupList["sac180"]);
+          
+            sac365.Click();
+            sac365.SendKeys(pricingGroupList["sac365"]);
+
+            sacream365.Click();
+            sacream365.SendKeys(pricingGroupList["sacream365"]);
+
+            sac18mo.Click();
+            sac18mo.SendKeys(pricingGroupList["mo18sac"]);
+
+            sac24mo.Click();
+            sac24mo.SendKeys(pricingGroupList["mo24sac"]);
+
+            micro365sac.Click();
+            micro365sac.SendKeys(pricingGroupList["micro365sac"]);
+
+            NewYesLoans.Click();
+            NewYesLoans.SendKeys(pricingGroupList["newyesloans"]);
+
+            Yes02.Click();
+            Yes02.SendKeys(pricingGroupList["yes02"]);
+
+            yes04.Click();
+            yes04.SendKeys(pricingGroupList["yes04"]);
+
+            yes09.Click();
+            yes09.SendKeys(pricingGroupList["yes09"]);
+
+            ayl11.Click();
+            ayl11.SendKeys(pricingGroupList["ayl11"]);
+
+            mo12.Click();
+            mo12.SendKeys(pricingGroupList["mo12"]);
+
+            mo24.Click();
+            mo24.SendKeys(pricingGroupList["mo24"]);
+
+            mo36.Click();
+            mo36.SendKeys(pricingGroupList["mo36"]);
+
+            mo48.Click();
+            mo48.SendKeys(pricingGroupList["mo48"]);
+
+            mo60.Click();
+            mo60.SendKeys(pricingGroupList["mo60"]);
+
+            mo72.Click();
+            mo72.SendKeys(pricingGroupList["mo72"]);
+
+            mo84.Click();
+            mo84.SendKeys(pricingGroupList["mo84"]);
+
+            micro24mo.Click();
+            micro24mo.SendKeys(pricingGroupList["micro24mo"]);
+
+            combo1_99percent_7yr.Click();
+            combo1_99percent_7yr.SendKeys(pricingGroupList["combo7yr199percent"]);
+
+            combo1_99percent_10yr.Click();
+            combo1_99percent_10yr.SendKeys(pricingGroupList["combo10yr199percent"]);
+
+            combo1_99percent_12yr.Click();
+            combo1_99percent_12yr.SendKeys(pricingGroupList["combo12yr199percent"]);
+
+            yr5_2_99percent.Click();
+            yr5_2_99percent.SendKeys(pricingGroupList["yr5299percent"]);
+
+            combo2_99_7yr.Click();
+            combo2_99_7yr.SendKeys(pricingGroupList["combo7yr299percent"]);
+
+            combo2_99_10yr.Click();
+            combo2_99_10yr.SendKeys(pricingGroupList["combo10yr299percent"]);
+
+            combo2_99_12yr.Click();
+            combo2_99_12yr.SendKeys(pricingGroupList["combo12yr299percent"]);
+
+            combo3_99_10yr.Click();
+            combo3_99_10yr.SendKeys(pricingGroupList["combo10yr399percent"]);
+
+            combo3_99_12yr.Click();
+            combo3_99_12yr.SendKeys(pricingGroupList["combo12yr399percent"]);
+
+            yr5_4_99percent.Click();
+            yr5_4_99percent.SendKeys(pricingGroupList["yr5499percent"]);
+
+            combo4_99_7yr.Click();
+            combo4_99_7yr.SendKeys(pricingGroupList["combo7yr499percent"]);
+
+            combo4_99_10yr.Click();
+            combo4_99_10yr.SendKeys(pricingGroupList["combo10yr499percent"]);
+
+            combo4_99_12yr.Click();
+            combo4_99_12yr.SendKeys(pricingGroupList["combo12yr499percent"]);
+
+            combo4_99_20yr.Click();
+            combo4_99_20yr.SendKeys(pricingGroupList["combo20yr499percent"]);
+
+            yr5_6_99percent.Click();
+            yr5_6_99percent.SendKeys(pricingGroupList["yr5699percent"]);
+
+            combo6_99_7yr.Click();
+            combo6_99_7yr.SendKeys(pricingGroupList["combo7yr699percent"]);
+
+            combo6_99_10yr.Click();
+            combo6_99_10yr.SendKeys(pricingGroupList["combo10yr699percent"]);
+
+            combo6_99_10yr.Click();
+            combo6_99_12yr.SendKeys(pricingGroupList["combo12yr699percent"]);
+
+            combo6_99_20yr.Click();
+            combo6_99_20yr.SendKeys(pricingGroupList["combo20yr699percent"]);
+
+            yr5_7_99percent.Click();
+            yr5_7_99percent.SendKeys(pricingGroupList["yr5799percent"]);
+
+            combo7_99_7yr.Click();
+            combo7_99_7yr.SendKeys(pricingGroupList["combo7yr799percent"]);
+
+            combo7_99_10yr.Click();
+            combo7_99_10yr.SendKeys(pricingGroupList["combo10yr799percent"]);
+
+            combo7_99_12yr.Click();
+            combo7_99_12yr.SendKeys(pricingGroupList["combo12yr799percent"]);
+
+            yr5_8_99percent.Click();
+            yr5_8_99percent.SendKeys(pricingGroupList["yr5899percent"]);
+
+            combo8_99_7yr.Click();
+            combo8_99_7yr.SendKeys(pricingGroupList["combo7yr899percent"]);
+
+            combo8_99_10yr.Click();
+            combo8_99_10yr.SendKeys(pricingGroupList["combo10yr899percent"]);
+
+            combo8_99_12yr.Click();
+            combo8_99_12yr.SendKeys(pricingGroupList["combo12yr899percent"]);
+
+            yr1to5_6_99percent.Click();
+            yr1to5_6_99percent.SendKeys(pricingGroupList["yr1to5699percent"]);
+        }
+
+
+        internal FeesPage populatepricinglevel(FeesDTOTest fees)
+        {
+            if (string.IsNullOrEmpty(fees.PricingGroups))
+                return this;
+            else
+            {
+                Dictionary<string, string> pricingGroupList = new Dictionary<string, string>();
+                var FeeResults = fees.PricingGroups.Split(',');
+
+                for (int i = 0; i < FeeResults.Length; i++)
+                {
+                    var key = 0;
+                    var value = 1;
+                    var FeeResultValue = FeeResults[i].Split('=');
+                    pricingGroupList.Add(FeeResultValue[key].ToLower(), FeeResultValue[value].ToString());
+                }
+                populateGroupListFields(pricingGroupList);
+                return this;
+            }
+        }
+
+        public bool CanSaveFees { get { return btnSave.Enabled; } }
+
+        public bool CanCancel { get { return btnCancel.Enabled; } }
+
+        public bool canAddPricingLevel { get { return btnNew.Enabled; } }
+        public bool canSaveLinkedSponsor { get { return btnSaveLinkedSponsor.Enabled; } }
+
+
+
+       
+    }
+
+}
