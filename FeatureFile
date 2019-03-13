@@ -1,41 +1,21 @@
-using OpenQA.Selenium;
-using OpenQA.Selenium.Support.PageObjects;
-using OpenQA.Selenium.Support.UI;
-using Protractor;
-using System;
-using ProjectName
-using System.Collections.Generic;
-using System.Linq;
-using EBOA.AcceptanceTests.Helpers;
-using supportingProject
-using EBOA.AcceptanceTests.DTOs;
-
-namespace Project.AcceptanceTests.Pages.Admin
-{
-    internal class TestsPage : BasePage
-
-    {
-        private NgWebDriver ngDriver;
-        private WebDriverWait wait;
-        private By lctWaitSpinner = By.Id("ngplus-overlay-container");
-        private By editButton = By.CssSelector("div.pricing-overview > table > tbody:nth-child(2) > tr.edit-pricing-row > td.edit-field.ng-scope > i");
-
-        //the feature tab
-        [FindsBy(How = How.Custom, CustomFinderType = typeof(NgByBinding), Using = "Fees")]
-
-        // Click on the Create new elementName
-        [FindsBy(How = How.CssSelector, Using = "button[ng-click*=\"vm.createPricingLevel\"]")]
-
-        private IWebElement btnNew { get; set; }
-        
-        //Calendar icon
-        [FindsBy(How = How.CssSelector, Using = "button[ng-click*=\"vm.open($event)")]
-        private IWebElement calendar{ get; set; }
-
-        //Display as of Date field
-        [FindsBy(How = How.Custom, CustomFinderType = typeof(NgByModel), Using = "vm.date")]
-        private IWebElement enterDate { get; set; }
-
-        // Click on Link Sponsor
-        [FindsBy(How = How.CssSelector, Using = "button.col-xs-3.pull-right.assoc-sponsor-btn")]
-        private IWebElement linkSponsor { get; set; }
+@smoke @fsfeature @createfs
+Given I am on the xyg Page
+When I go to xyg aPage
+And I select tomorrows date
+And I create a new pricing level
+And I create the following pricing level:
+  | Name  | order | FeeLevelID | FeeBSP           | FromDt | ProductPricingGroupID | FeeDetailType |
+  | Jack  | 4     | 0          | 3                |        | 9                     | Percentage    |
+  | Mary  | 1     | 0          | 3.679            |        | 9                     | Basis Points  |
+  | Louis | 2     | 0          | 54               |        | 9                     | Percentage    |
+  | Tom   | 3     | 0          | 08               |        | 9                     | Basis Points  |
+  | Katie | 5     | 0          | 2.454358309453   |        | 9                     | Percentage    |
+  
+ Then I can cancel out of the page  
+ Then The new fee Level is saved to the database:
+   | Name   | order  | BasedOnPrime | FeeBSP  | FeeDetailType | CreatedBy |
+   | Jack   | Prime  | true         | 3       | BasisPoints   | Anonymous |
+   | Mary   | value1 | false        | 3.679   | BasisPoints   | Anonymous |
+   | Louis  | value2 | false        | 54      | BasisPoints   | Anonymous |
+   | Tom    | value3 | false        | 08      | BasisPoints   | Anonymous |
+   | Katie  | value4 | false        | 2.45435 | BasisPoints   | Anonymous |
