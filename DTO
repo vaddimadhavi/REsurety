@@ -1,4 +1,7 @@
 # reSurety
+
+/* This file defines the DTO on the test page */
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
