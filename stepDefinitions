@@ -1,3 +1,6 @@
+
+//This page contains code to run the feature files as step definitions //
+
 using EBOA.AcceptanceTests.Pages.Admin;
 using OpenQA.Selenium.Support.UI;
 using EBOA.AcceptanceTests.Helpers;
