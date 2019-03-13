@@ -1,4 +1,7 @@
 # reSurety
+
+//This page has the test page objects defined //
+
 using OpenQA.Selenium;
 using OpenQA.Selenium.Support.PageObjects;
 using OpenQA.Selenium.Support.UI;
