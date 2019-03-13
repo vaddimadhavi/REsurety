@@ -1,5 +1,7 @@
 @smoke @fsfeature @createfs
+//This feature file depends upon step definitions to execute the said steps on this page//
 
+Scenario: User creates a xyz level and values get saved to the data base as expected
 Given I am on the xyg Page
 When I go to xyg aPage
 And I select tomorrows date
