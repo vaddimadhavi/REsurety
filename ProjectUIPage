@@ -13,7 +13,7 @@ using AcceptanceTests.DTOs;
 
 namespace AcceptanceTests.Pages.Admin
 {
-    internal class FeesPage : BasePage
+    internal class FsPage : BasePage
 
     {
         private NgWebDriver ngDriver;
@@ -714,7 +714,7 @@ namespace AcceptanceTests.Pages.Admin
             }
         }
 
-        public bool CanSaveFees { get { return btnSave.Enabled; } }
+        public bool CanSaveF { get { return btnSave.Enabled; } }
 
         public bool CanCancel { get { return btnCancel.Enabled; } }
 
